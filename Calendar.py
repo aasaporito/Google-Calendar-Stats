@@ -11,4 +11,4 @@ class Calendar:
 		self.id = id
 		self.timeZone = timeZone
 		self.isActive = isActive
-		self.events = events
+		self.events = []
