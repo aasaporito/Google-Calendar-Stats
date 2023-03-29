@@ -11,6 +11,8 @@ from googleapiclient.errors import HttpError
 
 
 from Calendar import Calendar
+from Event import Event
+
 # If modifying these scopes, delete the file token.json.    
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
@@ -33,11 +35,12 @@ def main():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
+    calList = []
     try:
         service = build('calendar', 'v3', credentials=creds)
         calendars = service.calendarList().list().execute()
 
-        calList = []
+        
 
         for cal in calendars['items']:
             ans = input("Track this calendar (y/n): {} \n".format(cal['summary']))
@@ -56,18 +59,28 @@ def main():
         oneWeek = (datetime.datetime.utcnow() + datetime.timedelta(days=7)).isoformat() + 'Z'
 
         for cal in calList:
+            eventList = []
+
             if cal.isActive:
+
                 events = service.events().list(calendarId=cal.id, timeMin=now, timeMax=oneWeek, showDeleted=False).execute()
-               
+                Event(events['items'][0])
                 for event in events['items']:
                     try:
-                        print(event['summary'])
+                        e = Event(event)
+                        eventList.append(e);
+
                     except:
-                        print("Summary not found for: ")
-                        #print(event)
+                        continue
+
+            cal.events = eventList
 
     except HttpError as error:
         print('An error occurred: %s' % error)
+
+    for cal in calList:
+        for event in cal.events:
+            print(event)
 
 
 if __name__ == '__main__':
